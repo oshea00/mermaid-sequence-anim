@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Sequence Diagram Animator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:#060910;overflow:hidden;font-family:'Inter',system-ui,sans-serif;color:#dde3ef}
+#app{display:flex;flex-direction:column;height:100vh}
+#hdr{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:9px 18px;border-bottom:1px solid rgba(255,255,255,.05)}
+.pulse{width:6px;height:6px;border-radius:50%;background:#4ECDC4;animation:blink 2.5s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.12}}
+#hdr h1{font-size:14px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.75)}
+#body{flex:1;display:flex;min-height:0}
+#cvwrap{flex:1;overflow:hidden;position:relative;cursor:grab}
+#cvwrap.dragging{cursor:grabbing}
+canvas{display:block}
+#panel{width:220px;border-left:1px solid rgba(255,255,255,.05);overflow-y:auto;padding:6px 8px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.08) transparent}
+#panel::-webkit-scrollbar{width:3px}
+#panel::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+.ph-hdr{font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:10px 8px 4px;margin-top:2px}
+.sitem{display:flex;align-items:flex-start;gap:7px;padding:5px 8px;border-radius:5px;cursor:pointer;margin-bottom:2px;opacity:.25;transition:opacity .2s,background .2s,outline .15s}
+.sitem:hover{opacity:.5;background:rgba(255,255,255,.03)}
+.sitem.done{opacity:.5}
+.sitem.active{opacity:1;background:rgba(255,255,255,.05);outline:1px solid rgba(255,255,255,.1);outline-offset:-1px}
+.sdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:3px}
+.sinfo{min-width:0;flex:1}
+.sdir{font-size:10px;color:rgba(255,255,255,.6);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.smsg{font-size:9px;font-family:'Space Mono','Courier New',monospace;color:rgba(255,255,255,.28);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#foot{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:9px 18px;border-top:1px solid rgba(255,255,255,.05)}
+.btn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.5);border-radius:7px;cursor:pointer;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;transition:all .12s;font-family:inherit}
+.btn:hover{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.15)}
+#bplay{width:38px;height:38px;font-size:15px;background:rgba(78,205,196,.1);border-color:rgba(78,205,196,.3);color:#4ECDC4}
+#bplay:hover{background:rgba(78,205,196,.2)}
+.ptrack{flex:1;height:2px;background:rgba(255,255,255,.07);border-radius:1px;cursor:pointer;position:relative}
+.pfill{height:100%;background:linear-gradient(90deg,#4ECDC4,#A78BFA);border-radius:1px;pointer-events:none;transition:width .2s}
+.scnt{font-size:10px;color:rgba(255,255,255,.2);min-width:48px;text-align:right;font-variant-numeric:tabular-nums}
+.spdw{display:flex;align-items:center;gap:6px;flex-shrink:0}
+.spdw label{font-size:9px;color:rgba(255,255,255,.2)}
+#spd{width:56px;accent-color:#4ECDC4;cursor:pointer}
+.hidden{display:none!important}
+#anim-screen{flex:1;display:flex;flex-direction:column;min-height:0}
+/* editor screen */
+#edit-screen{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;gap:20px}
+#edit-screen textarea{width:100%;max-width:760px;height:50vh;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#dde3ef;font-family:'Space Mono','Courier New',monospace;font-size:13px;padding:16px;resize:vertical;outline:none;tab-size:4}
+#edit-screen textarea:focus{border-color:rgba(78,205,196,.4)}
+#edit-screen .edit-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center}
+#edit-screen .edit-actions label{font-size:12px;color:rgba(255,255,255,.4)}
+.btn-primary{background:rgba(78,205,196,.15);border:1px solid rgba(78,205,196,.4);color:#4ECDC4;border-radius:8px;cursor:pointer;padding:8px 22px;font-size:13px;font-weight:600;font-family:inherit;transition:all .12s}
+.btn-primary:hover{background:rgba(78,205,196,.25)}
+.btn-secondary{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);border-radius:8px;cursor:pointer;padding:8px 18px;font-size:13px;font-family:inherit;transition:all .12s}
+.btn-secondary:hover{background:rgba(255,255,255,.08);color:#fff}
+#file-input{display:none}
+#parse-error{color:#FF6B8A;font-size:12px;max-width:760px;text-align:center;min-height:18px}
+/* GIF export */
+.btn-gif{background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.3);color:#A78BFA;border-radius:7px;cursor:pointer;padding:4px 14px;font-size:11px;font-weight:500;font-family:inherit;transition:all .12s;flex-shrink:0}
+.btn-gif:hover{background:rgba(167,139,250,.22)}
+#gif-overlay{position:fixed;inset:0;background:rgba(6,9,16,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:100}
+#gif-overlay .gif-label{font-size:14px;color:rgba(255,255,255,.7)}
+#gif-overlay .gif-bar{width:280px;height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+#gif-overlay .gif-fill{height:100%;background:linear-gradient(90deg,#4ECDC4,#A78BFA);border-radius:2px;transition:width .1s}
+/* zoom controls */
+.zoom-grp{display:flex;align-items:center;gap:4px;flex-shrink:0}
+.zoom-grp .btn{width:26px;height:26px;font-size:14px}
+.zoom-lbl{font-size:10px;color:rgba(255,255,255,.25);min-width:36px;text-align:center;font-variant-numeric:tabular-nums}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="hdr">
+    <div class="pulse"></div>
+    <h1>Sequence Diagram Animator</h1>
+    <button class="btn-secondary hidden" id="bback" style="margin-left:auto;padding:4px 12px;font-size:11px">Back to Editor</button>
+  </div>
+
+  <!-- Editor Screen -->
+  <div id="edit-screen">
+    <textarea id="mermaid-input" spellcheck="false" placeholder="Paste mermaid sequenceDiagram code here..."></textarea>
+    <div id="parse-error"></div>
+    <div class="edit-actions">
+      <button class="btn-primary" id="bload">Load &amp; Animate</button>
+      <button class="btn-secondary" id="bfile-btn">Upload File</button>
+      <input type="file" id="file-input" accept=".md,.mmd,.txt">
+      <label>(.md .mmd .txt)</label>
+    </div>
+  </div>
+
+  <!-- Animation Screen -->
+  <div id="anim-screen" class="hidden">
+    <div id="body">
+      <div id="cvwrap"><canvas id="cv"></canvas></div>
+      <div id="panel"></div>
+    </div>
+    <div id="foot">
+      <button class="btn" id="breset" title="Reset">&#8634;</button>
+      <button class="btn" id="bprev" title="Prev step">&#9666;</button>
+      <button class="btn" id="bplay" title="Play / Pause">&#9654;</button>
+      <button class="btn" id="bnext" title="Next step">&#9656;</button>
+      <div class="ptrack" id="ptrack"><div class="pfill" id="pfill" style="width:0%"></div></div>
+      <div class="scnt" id="scnt">0 / 0</div>
+      <div class="spdw"><label>Speed</label><input type="range" id="spd" min="0.5" max="3" step="0.5" value="1"></div>
+      <div class="zoom-grp">
+        <button class="btn" id="bzout" title="Zoom out">-</button>
+        <span class="zoom-lbl" id="zlbl">100%</span>
+        <button class="btn" id="bzin" title="Zoom in">+</button>
+        <button class="btn" id="bzfit" title="Reset zoom" style="font-size:10px;width:28px">Fit</button>
+      </div>
+      <button class="btn-gif" id="bgif">Export GIF</button>
+    </div>
+  </div>
+
+  <div id="gif-overlay" class="hidden">
+    <div class="gif-label" id="gif-status">Rendering frames...</div>
+    <div class="gif-bar"><div class="gif-fill" id="gif-fill" style="width:0%"></div></div>
+  </div>
+</div>
+<script>
+// ── mermaid parser ───────────────────────────────────────────────────────────
+const PALETTE = ['#FF6B8A','#4ECDC4','#FFB347','#A78BFA','#6BCB77','#45B7D1','#F7DC6F','#E879F9','#FB923C','#67E8F9'];
+
+function parseMermaid(text) {
+  const lines = text.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('%%'));
+  const partMap = new Map();
+  const phases = [];
+  const steps = [];
+  let colorIdx = 0;
+  let phaseId = 0;
+  let currentPhase = 0;
+
+  const structural = /^(sequenceDiagram|loop\b|rect\b|alt\b|opt\b|critical\b|else\b|end\b|activate\b|deactivate\b|title\b|autonumber\b)/i;
+
+  function getOrCreatePart(name) {
+    if (partMap.has(name)) return partMap.get(name);
+    const idx = partMap.size;
+    const color = PALETTE[idx % PALETTE.length];
+    const entry = { index: idx, name, label: name, color };
+    partMap.set(name, entry);
+    colorIdx++;
+    return entry;
+  }
+
+  for (const line of lines) {
+    const pm = line.match(/^participant\s+(\S+?)(?:\s+as\s+(.+))?$/i);
+    if (pm) {
+      const name = pm[1];
+      const label = pm[2] ? pm[2].replace(/<br\s*\/?>/gi, '\n') : name;
+      const entry = getOrCreatePart(name);
+      entry.label = label;
+    }
+  }
+
+  for (const line of lines) {
+    if (structural.test(line)) continue;
+    if (/^participant\s/i.test(line)) continue;
+
+    const noteM = line.match(/^Note\s+over\s+([^:]+):\s*(.+)$/i);
+    if (noteM) {
+      const desc = noteM[2].replace(/<br\s*\/?>/gi, ' ').trim();
+      phaseId++;
+      const phColor = steps.length > 0 ? steps[steps.length - 1].color : PALETTE[phaseId % PALETTE.length];
+      phases.push({ id: phaseId, label: desc, color: phColor });
+      currentPhase = phaseId;
+      continue;
+    }
+
+    const arrowM = line.match(/^(\S+?)\s*(-?->>?)\s*(\S+?)\s*:\s*(.*)$/);
+    if (arrowM) {
+      const fromName = arrowM[1];
+      const toName = arrowM[3];
+      const msg = arrowM[4].replace(/<br\s*\/?>/gi, ' ').trim();
+      const fromP = getOrCreatePart(fromName);
+      const toP = getOrCreatePart(toName);
+      const isLoop = fromP.index === toP.index;
+      const step = {
+        from: fromP.index, to: toP.index,
+        msg: msg || '(no message)', color: fromP.color,
+        phase: currentPhase,
+        ...(isLoop && { loop: true })
+      };
+      steps.push(step);
+
+      if (currentPhase > 0) {
+        const ph = phases.find(p => p.id === currentPhase);
+        if (ph && ph._colorSet === undefined) {
+          ph.color = fromP.color;
+          ph._colorSet = true;
+        }
+      }
+      continue;
+    }
+  }
+
+  if (partMap.size === 0 || steps.length === 0) {
+    throw new Error('No participants or messages found. Ensure your input contains valid sequenceDiagram arrows (e.g. A->>B: message).');
+  }
+
+  if (phases.length === 0) {
+    phases.push({ id: 1, label: 'Sequence', color: steps[0].color });
+    for (const s of steps) s.phase = 1;
+  }
+
+  const firstPhaseId = phases[0].id;
+  for (const s of steps) {
+    if (s.phase === 0) s.phase = firstPhaseId;
+  }
+
+  const PARTS = [];
+  for (const [, v] of partMap) {
+    PARTS[v.index] = { name: v.name, label: v.label, color: v.color };
+  }
+
+  for (const ph of phases) delete ph._colorSet;
+
+  return { PARTS, PHASES: phases, STEPS: steps };
+}
+
+// ── default example ──────────────────────────────────────────────────────────
+const DEFAULT_MERMAID = `sequenceDiagram
+    participant User
+    participant Chat as ChatSession
+    participant OpenAI as OpenAI API
+    participant Executor as MCPToolExecutor<br/>(Translation Layer)
+    participant MCP as MCP Server
+
+    User->>Chat: "What's the weather in Paris?"
+
+    Note over Chat,OpenAI: Phase 1: Initial Chat Completion
+    Chat->>Chat: Add user message to history
+    Chat->>OpenAI: chat.completions.create(<br/>messages=[...],<br/>tools=[...],<br/>tool_choice="auto")
+    OpenAI->>Chat: Response with tool_calls array:<br/>[{id: "call_123", function: {<br/>name: "get_weather",<br/>arguments: '{"location": "Paris"}'}}]
+
+    Note over Chat,MCP: Phase 2: Tool Execution via Translation Layer
+    Chat->>Chat: Detect tool_calls in response
+    Chat->>Chat: Add assistant message with tool_calls to history
+
+    loop For each tool_call
+        Chat->>Executor: execute_tool(<br/>"get_weather",<br/>{"location": "Paris"})
+
+        Note over Executor: Translate OpenAI to MCP
+        Executor->>Executor: Lookup server for "get_weather"<br/>-> "utilities" server
+        Executor->>MCP: stdio_client(command, args)
+        Executor->>MCP: session.initialize()
+        Executor->>MCP: session.call_tool(<br/>"get_weather",<br/>{"location": "Paris"})
+        MCP->>Executor: CallToolResult:<br/>content: [TextContent(<br/>text="Weather in Paris: Sunny, 72F")]
+
+        Note over Executor: Extract result
+        Executor->>Executor: Extract text from content array
+        Executor->>Chat: "Weather in Paris: Sunny, 72F"
+
+        Chat->>Chat: Add tool result to history:<br/>{role: "tool",<br/>tool_call_id: "call_123",<br/>content: "..."}
+    end
+
+    Note over Chat,OpenAI: Phase 3: Final Response Synthesis
+    Chat->>OpenAI: chat.completions.create(<br/>messages=[..., tool_results])
+    OpenAI->>Chat: Final response synthesized<br/>from tool results
+    Chat->>User: "The weather in Paris is<br/>sunny with 72F"`;
+
+// ── globals ──────────────────────────────────────────────────────────────────
+let PARTS = [], PHASES = [], STEPS = [];
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+let W = 0, H = 0, dpr = window.devicePixelRatio || 1;
+let zoom = 1, panX = 0, panY = 0;
+
+// ── helpers ──────────────────────────────────────────────────────────────────
+function rgba(hex, a) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return `rgba(${r},${g},${b},${a})`;
+}
+function eio(t) { return t < .5 ? 4*t*t*t : 1 - Math.pow(-2*t+2,3)/2 }
+function rrect(x,y,w,h,r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r,y); ctx.lineTo(x+w-r,y); ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w,y+h-r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+  ctx.lineTo(x+r,y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
+  ctx.lineTo(x,y+r); ctx.arcTo(x,y,x+r,y,r);
+  ctx.closePath();
+}
+
+// ── layout ───────────────────────────────────────────────────────────────────
+function lay(aW, aH) {
+  const n = PARTS.length;
+  if (n === 0) return { n:0, pw:0, partH:0, padX:0, sp:0, partY:0, wireY:0, msgY:0, px:[] };
+  const w = aW || W, h = aH || H;
+  const partH = 52, padX = 80;
+  const pw = n === 1 ? 108 : Math.min(108, (w - padX*2) / (n-1) * 0.78);
+  const sp = n === 1 ? 0 : (w - padX*2) / (n-1);
+  const partY = Math.max(26, h * .09);
+  const wireY = partY + partH/2;
+  const msgY  = wireY + Math.min(65, h * .16);
+  return {
+    n, pw, partH, padX, sp, partY, wireY, msgY,
+    px: PARTS.map((_,i) => n === 1 ? w/2 : padX + i * sp),
+  };
+}
+
+// ── content bounds (world coords) ────────────────────────────────────────────
+function contentBounds() {
+  const L = lay();
+  if (L.n === 0) return { x:0, y:0, w:W, h:H };
+  const pad = 35;
+
+  // horizontal
+  const left = L.px[0] - L.pw/2 - pad;
+  const right = L.px[L.n-1] + L.pw/2 + pad;
+
+  // top: phase label or participant top
+  const top = Math.min(8, L.partY - 5) - pad;
+
+  // bottom: estimate worst-case message box height across all steps
+  let maxMsgH = 0;
+  const tmpCv = document.createElement('canvas');
+  const tmpCtx = tmpCv.getContext('2d');
+  tmpCtx.font = '12px "Space Mono","Courier New",monospace';
+  const maxTextW = (right - left) - 28;
+  for (const s of STEPS) {
+    const words = s.msg.split(' ');
+    let lines = 1, line = '';
+    for (const w of words) {
+      const test = line ? line + ' ' + w : w;
+      if (tmpCtx.measureText(test).width > maxTextW && line) { lines++; line = w; }
+      else line = test;
+    }
+    maxMsgH = Math.max(maxMsgH, lines * 19 + 26);
+  }
+  const bottom = L.msgY + maxMsgH + pad;
+
+  return { x: left, y: top, w: right - left, h: bottom - top };
+}
+
+// ── animation state ──────────────────────────────────────────────────────────
+const TRAVEL = 0.62, HOLD = 0.85, LOOP_DUR = 0.68;
+const A = { step:-1, t:1, holding:false, holdLeft:0, loopT:0, playing:false, speed:1, lastTs:null };
+
+// ── draw ─────────────────────────────────────────────────────────────────────
+function draw() {
+  // clear and background (full canvas, no zoom)
+  ctx.fillStyle = '#060910'; ctx.fillRect(0,0,W,H);
+
+  // dot grid (unzoomed, anchored to viewport)
+  ctx.fillStyle = 'rgba(255,255,255,.016)';
+  const gs = 28;
+  for(let x = gs/2; x < W; x += gs) for(let y = gs/2; y < H; y += gs) {
+    ctx.beginPath(); ctx.arc(x,y,.85,0,Math.PI*2); ctx.fill();
+  }
+
+  if (PARTS.length === 0) return;
+
+  // apply zoom + pan transform
+  ctx.save();
+  ctx.translate(W/2, H/2);
+  ctx.scale(zoom, zoom);
+  ctx.translate(-W/2 + panX, -H/2 + panY);
+
+  const L = lay();
+  const s = A.step >= 0 && A.step < STEPS.length ? STEPS[A.step] : null;
+  const et = eio(Math.min(A.t, 1));
+
+  // phase tint (covers visible area)
+  if (s) {
+    const ph = PHASES.find(p => p.id === s.phase);
+    if (ph) { ctx.fillStyle = rgba(ph.color, .028); ctx.fillRect(-W,0-H,W*3,H*3); }
+  }
+
+  drawWires(L, s, et);
+
+  L.px.forEach((_, i) => {
+    let glow = 0, active = false;
+    if (s) {
+      if (s.loop && s.from === i) {
+        const lt = A.loopT / LOOP_DUR;
+        glow = 0.55 + lt * 0.45; active = true;
+      } else if (!s.loop && s.from === i) {
+        glow = Math.max(0, 1 - et * 2.2); active = true;
+      } else if (!s.loop && s.to === i) {
+        glow = Math.max(0, (et - 0.45) * 2); active = true;
+      }
+    }
+    drawParticipant(i, L, glow, active);
+  });
+
+  if (s) drawMsgAnim(s, L, et);
+  drawMsgLabel(s, L);
+  if (s) drawPhaseLabel(s.phase);
+
+  if (A.step < 0) {
+    ctx.font = '500 13px Inter,sans-serif';
+    ctx.fillStyle = 'rgba(255,255,255,.25)';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('Press \u25b6 to animate \u00b7 Step through manually with \u25c2 \u25b8', W/2, H*.73);
+  }
+
+  ctx.restore();
+}
+
+function drawWires(L, s, et) {
+  if (L.n < 2) return;
+  const x0 = L.px[0], x1 = L.px[PARTS.length-1], wy = L.wireY;
+
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,.06)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(x0,wy); ctx.lineTo(x1,wy); ctx.stroke();
+
+  L.px.forEach(px => {
+    ctx.beginPath(); ctx.arc(px,wy,2.2,0,Math.PI*2);
+    ctx.fillStyle = 'rgba(255,255,255,.1)'; ctx.fill();
+  });
+
+  if (s && !s.loop) {
+    const fc = L.px[s.from], tc = L.px[s.to];
+    const goRight = tc > fc;
+    const xs = goRight ? fc + L.pw/2 : tc + L.pw/2;
+    const xe = goRight ? tc - L.pw/2 : fc - L.pw/2;
+    ctx.strokeStyle = rgba(s.color,.28); ctx.lineWidth = 1.8;
+    ctx.beginPath(); ctx.moveTo(xs,wy); ctx.lineTo(xe,wy); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawParticipant(i, L, glow, active) {
+  const p = PARTS[i];
+  const cx = L.px[i], y = L.partY;
+  const pw = L.pw, ph = L.partH;
+  const x = cx - pw/2;
+
+  ctx.save();
+  if (glow > 0) { ctx.shadowColor = p.color; ctx.shadowBlur = 18 * glow; }
+
+  rrect(x,y,pw,ph,8);
+  ctx.fillStyle = active ? rgba(p.color,.17) : 'rgba(255,255,255,.032)';
+  ctx.fill();
+  ctx.strokeStyle = active ? rgba(p.color,.9) : rgba(p.color,.2);
+  ctx.lineWidth = active ? 1.3 : 0.6;
+  rrect(x,y,pw,ph,8); ctx.stroke();
+  ctx.shadowBlur = 0;
+
+  const lines = p.label.split('\n');
+  ctx.font = '500 10px Inter,sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = active ? p.color : rgba(p.color,.55);
+  const lh = 13, th = lines.length * lh;
+  lines.forEach((ln,li) => ctx.fillText(ln, cx, y + ph/2 - th/2 + li*lh + lh/2));
+
+  ctx.restore();
+}
+
+function drawMsgAnim(s, L, et) {
+  const wy = L.wireY;
+
+  if (s.loop) {
+    const cx = L.px[s.from], r = L.pw/2 + 11;
+    const progress = eio(Math.min(A.loopT / LOOP_DUR, 1));
+    const startA = -Math.PI * 0.75;
+    const sweep  = Math.PI * 1.65 * progress;
+
+    ctx.save();
+    ctx.strokeStyle = rgba(s.color,.9); ctx.lineWidth = 2.2;
+    ctx.lineCap = 'round';
+    ctx.shadowColor = s.color; ctx.shadowBlur = 10;
+    ctx.beginPath(); ctx.arc(cx, wy, r, startA, startA + sweep); ctx.stroke();
+
+    const tipA = startA + sweep;
+    const tipX = cx + Math.cos(tipA)*r, tipY = wy + Math.sin(tipA)*r;
+    ctx.shadowBlur = 12;
+    ctx.beginPath(); ctx.arc(tipX, tipY, 5.5, 0, Math.PI*2);
+    ctx.fillStyle = s.color; ctx.fill();
+    ctx.restore();
+    return;
+  }
+
+  const fc = L.px[s.from], tc = L.px[s.to];
+  const goRight = tc > fc;
+  const fx = goRight ? fc + L.pw/2 : fc - L.pw/2;
+  const tx = goRight ? tc - L.pw/2 : tc + L.pw/2;
+  const dir = goRight ? 1 : -1;
+  const px = fx + (tx - fx) * et;
+
+  for (let k = 1; k <= 6; k++) {
+    const trailT = Math.max(0, et - k * .055);
+    const tpx = fx + (tx - fx) * eio(Math.min(trailT,1));
+    ctx.save();
+    ctx.globalAlpha = Math.max(0, 0.32 - k * .05);
+    ctx.beginPath(); ctx.arc(tpx, wy, Math.max(1, 5.5 - k*.7), 0, Math.PI*2);
+    ctx.fillStyle = s.color; ctx.fill();
+    ctx.restore();
+  }
+
+  ctx.save();
+  ctx.shadowColor = s.color; ctx.shadowBlur = 16;
+  ctx.beginPath(); ctx.arc(px, wy, 8, 0, Math.PI*2);
+  ctx.fillStyle = s.color; ctx.fill();
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = 'rgba(0,0,0,.55)';
+  ctx.font = 'bold 9px sans-serif';
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText(dir > 0 ? '\u203a' : '\u2039', px, wy + .5);
+  ctx.restore();
+}
+
+function drawMsgLabel(s, L) {
+  if (!s) return;
+  const maxW = W - 80;
+  const font = '12px "Space Mono","Courier New",monospace';
+  ctx.font = font;
+
+  const words = s.msg.split(' ');
+  const lines = []; let line = '';
+  for (const w of words) {
+    const test = line ? line + ' ' + w : w;
+    if (ctx.measureText(test).width > maxW - 28 && line) { lines.push(line); line = w; }
+    else line = test;
+  }
+  if (line) lines.push(line);
+
+  const lh = 19, boxH = lines.length * lh + 26;
+  const boxW = Math.min(maxW, W - 56);
+  const bx = (W - boxW) / 2, by = L.msgY;
+
+  ctx.save();
+  rrect(bx, by, boxW, boxH, 10);
+  ctx.fillStyle = rgba(s.color, .07); ctx.fill();
+  ctx.strokeStyle = rgba(s.color, .24); ctx.lineWidth = .75;
+  rrect(bx, by, boxW, boxH, 10); ctx.stroke();
+
+  const fn = PARTS[s.from].name.replace('\n',' ');
+  const tn = PARTS[s.to].name.replace('\n',' ');
+  const dirStr = s.loop ? '\u21a9  ' + fn : fn + '  \u2192  ' + tn;
+  ctx.font = '500 10px Inter,sans-serif';
+  ctx.fillStyle = rgba(s.color, .65);
+  ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+  ctx.fillText(dirStr, bx + 13, by + 7);
+
+  ctx.font = font;
+  ctx.fillStyle = rgba(s.color, .9);
+  lines.forEach((l, i) => ctx.fillText(l, bx + 13, by + 21 + i * lh));
+  ctx.restore();
+}
+
+function drawPhaseLabel(phId) {
+  const ph = PHASES.find(p => p.id === phId); if (!ph) return;
+  ctx.save();
+  ctx.font = '500 10px Inter,sans-serif';
+  const tw = ctx.measureText(ph.label).width;
+  const pw = tw + 22, px = W - pw - 14, py = 13, ph2 = 22;
+  rrect(px,py,pw,ph2,5);
+  ctx.fillStyle = rgba(ph.color,.1); ctx.fill();
+  ctx.strokeStyle = rgba(ph.color,.28); ctx.lineWidth = .6;
+  rrect(px,py,pw,ph2,5); ctx.stroke();
+  ctx.fillStyle = rgba(ph.color,.82);
+  ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+  ctx.fillText(ph.label, px + 11, py + ph2/2);
+  ctx.restore();
+}
+
+// ── sidebar ──────────────────────────────────────────────────────────────────
+function buildSidebar() {
+  const panel = document.getElementById('panel');
+  panel.innerHTML = '';
+  let curPh = null;
+  STEPS.forEach((s, i) => {
+    if (s.phase !== curPh) {
+      curPh = s.phase;
+      const ph = PHASES.find(p => p.id === curPh);
+      const el = document.createElement('div');
+      el.className = 'ph-hdr';
+      el.textContent = ph ? ph.label : 'Steps';
+      el.style.color = ph ? rgba(ph.color, .7) : 'rgba(255,255,255,.4)';
+      panel.appendChild(el);
+    }
+    const fn = PARTS[s.from].name.replace('\n',' ');
+    const tn = PARTS[s.to].name.replace('\n',' ');
+    const dir = s.loop ? '\u21a9 ' + fn : fn + ' \u2192 ' + tn;
+    const el = document.createElement('div');
+    el.className = 'sitem'; el.id = 'si' + i;
+    el.onclick = () => jumpTo(i, true);
+    el.innerHTML = '<div class="sdot" style="background:' + s.color + '"></div><div class="sinfo"><div class="sdir">' + dir + '</div><div class="smsg">' + s.msg.replace(/</g,'&lt;') + '</div></div>';
+    panel.appendChild(el);
+  });
+}
+
+function updateUI() {
+  STEPS.forEach((_,i) => {
+    const el = document.getElementById('si' + i); if (!el) return;
+    el.classList.remove('active','done');
+    if (i === A.step) el.classList.add('active');
+    else if (i < A.step) el.classList.add('done');
+  });
+  if (A.step >= 0) {
+    const el = document.getElementById('si' + A.step);
+    el?.scrollIntoView({ block:'nearest', behavior:'smooth' });
+  }
+  const cur = A.step < 0 ? 0 : A.step + 1;
+  document.getElementById('scnt').textContent = cur + ' / ' + STEPS.length;
+  document.getElementById('pfill').style.width = (STEPS.length ? (cur / STEPS.length) * 100 : 0) + '%';
+  document.getElementById('bplay').textContent = A.playing ? '\u23f8' : '\u25b6';
+}
+
+function updateZoomLabel() {
+  document.getElementById('zlbl').textContent = Math.round(zoom * 100) + '%';
+}
+
+function jumpTo(i, stopPlay) {
+  if (stopPlay) A.playing = false;
+  A.step = i; A.t = 0; A.holding = false; A.holdLeft = HOLD; A.loopT = 0;
+  updateUI();
+}
+
+function restartLoop() {
+  A.step = 0; A.t = 0; A.loopT = 0; A.holding = false; A.holdLeft = HOLD; A.playing = true;
+  A.lastTs = null; updateUI();
+}
+
+// ── screen management ────────────────────────────────────────────────────────
+function showScreen(screen) {
+  document.getElementById('edit-screen').classList.toggle('hidden', screen !== 'edit');
+  document.getElementById('anim-screen').classList.toggle('hidden', screen !== 'anim');
+  document.getElementById('bback').classList.toggle('hidden', screen !== 'anim');
+}
+
+function loadAnimation(parts, phases, steps) {
+  PARTS = parts; PHASES = phases; STEPS = steps;
+  A.step = -1; A.t = 1; A.holding = false; A.holdLeft = 0; A.loopT = 0; A.playing = false; A.speed = 1; A.lastTs = null;
+  zoom = 1; panX = 0; panY = 0;
+  document.getElementById('spd').value = '1';
+  updateZoomLabel();
+  showScreen('anim');
+  requestAnimationFrame(() => {
+    resize();
+    buildSidebar();
+    updateUI();
+  });
+}
+
+// ── controls ─────────────────────────────────────────────────────────────────
+document.getElementById('breset').onclick = () => {
+  A.playing = false; A.step = -1; A.t = 1; A.holding = false; A.loopT = 0; updateUI();
+};
+document.getElementById('bprev').onclick = () => {
+  A.playing = false;
+  if (A.step > 0) jumpTo(A.step - 1, false);
+  else if (A.step === 0) { A.step = -1; A.t = 1; A.holding = false; updateUI(); }
+};
+document.getElementById('bnext').onclick = () => {
+  A.playing = false;
+  if (A.step < STEPS.length - 1) jumpTo(A.step + 1, false);
+  else { A.t = 1; A.holding = false; updateUI(); }
+};
+document.getElementById('bplay').onclick = () => {
+  A.playing = !A.playing;
+  if (A.playing && A.step < 0) { A.step = 0; A.t = 0; A.loopT = 0; A.holding = false; A.holdLeft = HOLD; }
+  else if (A.playing && A.step >= STEPS.length - 1 && A.t >= 1 && !A.holding) {
+    A.step = 0; A.t = 0; A.loopT = 0; A.holding = false; A.holdLeft = HOLD;
+  }
+  A.lastTs = null; updateUI();
+};
+document.getElementById('spd').oninput = e => A.speed = parseFloat(e.target.value);
+document.getElementById('ptrack').onclick = e => {
+  const r = e.currentTarget.getBoundingClientRect();
+  const pct = (e.clientX - r.left) / r.width;
+  jumpTo(Math.max(0, Math.min(STEPS.length-1, Math.floor(pct * STEPS.length))), true);
+};
+
+document.getElementById('bback').onclick = () => {
+  A.playing = false;
+  showScreen('edit');
+};
+
+document.getElementById('bload').onclick = () => {
+  const text = document.getElementById('mermaid-input').value.trim();
+  const errEl = document.getElementById('parse-error');
+  errEl.textContent = '';
+  if (!text) { errEl.textContent = 'Please enter some mermaid sequenceDiagram code.'; return; }
+  try {
+    const result = parseMermaid(text);
+    loadAnimation(result.PARTS, result.PHASES, result.STEPS);
+  } catch(e) {
+    errEl.textContent = e.message;
+  }
+};
+
+document.getElementById('bfile-btn').onclick = () => document.getElementById('file-input').click();
+document.getElementById('file-input').onchange = e => {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    let text = reader.result;
+    const mermaidBlock = text.match(/```mermaid\s*\n([\s\S]*?)```/);
+    if (mermaidBlock) text = mermaidBlock[1];
+    document.getElementById('mermaid-input').value = text.trim();
+    document.getElementById('parse-error').textContent = '';
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+};
+
+// ── zoom / pan controls ─────────────────────────────────────────────────────
+function setZoom(z) {
+  zoom = Math.max(0.25, Math.min(5, z));
+  updateZoomLabel();
+}
+
+document.getElementById('bzin').onclick = () => setZoom(zoom * 1.25);
+document.getElementById('bzout').onclick = () => setZoom(zoom / 1.25);
+document.getElementById('bzfit').onclick = () => { zoom = 1; panX = 0; panY = 0; updateZoomLabel(); };
+
+// mouse wheel zoom on canvas
+document.getElementById('cvwrap').addEventListener('wheel', e => {
+  e.preventDefault();
+  const factor = e.deltaY < 0 ? 1.1 : 1/1.1;
+  setZoom(zoom * factor);
+}, { passive: false });
+
+// drag to pan
+{
+  const wrap = document.getElementById('cvwrap');
+  let dragging = false, dragStartX = 0, dragStartY = 0, panStartX = 0, panStartY = 0;
+
+  wrap.addEventListener('mousedown', e => {
+    if (e.button !== 0) return;
+    dragging = true;
+    dragStartX = e.clientX; dragStartY = e.clientY;
+    panStartX = panX; panStartY = panY;
+    wrap.classList.add('dragging');
+  });
+  window.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    panX = panStartX + (e.clientX - dragStartX) / zoom;
+    panY = panStartY + (e.clientY - dragStartY) / zoom;
+  });
+  window.addEventListener('mouseup', () => {
+    if (dragging) { dragging = false; document.getElementById('cvwrap').classList.remove('dragging'); }
+  });
+}
+
+// ── animation loop ───────────────────────────────────────────────────────────
+function loop(ts) {
+  if (A.lastTs !== null && STEPS.length > 0) {
+    const dt = (ts - A.lastTs) / 1000 * A.speed;
+    const s = A.step >= 0 ? STEPS[A.step] : null;
+
+    if (A.step >= 0) {
+      if (!A.holding) {
+        if (s && s.loop) {
+          A.loopT += dt;
+          if (A.loopT >= LOOP_DUR) { A.loopT = LOOP_DUR; A.t = 1; A.holding = true; A.holdLeft = HOLD; }
+        } else {
+          A.t += dt / TRAVEL;
+          if (A.t >= 1) { A.t = 1; A.holding = true; A.holdLeft = HOLD; }
+        }
+      } else if (A.playing) {
+        A.holdLeft -= dt;
+        if (A.holdLeft <= 0) {
+          A.holding = false;
+          if (A.step < STEPS.length - 1) {
+            A.step++; A.t = 0; A.loopT = 0; A.holdLeft = HOLD;
+          } else {
+            A.playing = false; updateUI();
+            setTimeout(() => { if (!A.playing) restartLoop(); }, 2200 / A.speed);
+          }
+        }
+      }
+      updateUI();
+    }
+  }
+  A.lastTs = ts;
+  draw();
+  requestAnimationFrame(loop);
+}
+
+// ── GIF export ───────────────────────────────────────────────────────────────
+let _gifWorkerBlobUrl = null;
+
+async function ensureGifDeps() {
+  if (!window.GIF) {
+    await new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js';
+      s.onload = resolve;
+      s.onerror = () => reject(new Error('Failed to load gif.js'));
+      document.head.appendChild(s);
+    });
+  }
+  if (!_gifWorkerBlobUrl) {
+    const resp = await fetch('https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js');
+    const workerText = await resp.text();
+    const blob = new Blob([workerText], { type: 'application/javascript' });
+    _gifWorkerBlobUrl = URL.createObjectURL(blob);
+  }
+}
+
+document.getElementById('bgif').onclick = async () => {
+  if (STEPS.length === 0) return;
+
+  const overlay = document.getElementById('gif-overlay');
+  const statusEl = document.getElementById('gif-status');
+  const fillEl = document.getElementById('gif-fill');
+  overlay.classList.remove('hidden');
+  statusEl.textContent = 'Loading GIF encoder...';
+  fillEl.style.width = '0%';
+
+  try {
+    await ensureGifDeps();
+  } catch(e) {
+    statusEl.textContent = 'Error: ' + e.message;
+    setTimeout(() => overlay.classList.add('hidden'), 2000);
+    return;
+  }
+
+  // compute content bounds in world coords, then apply zoom for GIF pixel size
+  const bounds = contentBounds();
+  const gifW = Math.round(bounds.w * zoom);
+  const gifH = Math.round(bounds.h * zoom);
+
+  const offCv = document.createElement('canvas');
+  offCv.width = gifW; offCv.height = gifH;
+  const offCtx = offCv.getContext('2d', { willReadFrequently: true });
+
+  // save state
+  const savedW = W, savedH = H, savedDpr = dpr;
+  const savedZoom = zoom, savedPanX = panX, savedPanY = panY;
+  const savedStep = A.step, savedT = A.t, savedLoopT = A.loopT;
+  const savedHolding = A.holding, savedPlaying = A.playing;
+
+  const gif = new GIF({
+    workers: 2,
+    quality: 10,
+    width: gifW,
+    height: gifH,
+    workerScript: _gifWorkerBlobUrl
+  });
+
+  const FPS = 30;
+  const spd = A.speed || 1;
+  const frameDelay = Math.max(20, Math.round(1000 / FPS / spd));
+  const travelFrames = Math.ceil(TRAVEL * FPS);
+  const holdFrames = Math.ceil(HOLD * FPS * 0.6);
+  const loopFrames = Math.ceil(LOOP_DUR * FPS);
+  const totalFrames = STEPS.length * (travelFrames + holdFrames);
+  let frameCount = 0;
+
+  statusEl.textContent = 'Rendering frames...';
+  A.playing = false;
+
+  // For GIF rendering: set canvas to full layout size, apply zoom+translate to crop
+  // We render at the original W x H layout but use the canvas at gifW x gifH,
+  // translating so the content bounding box is centered.
+  function renderFrame(stepIdx, t, loopT) {
+    // Use original viewport dimensions for layout (so layout matches preview)
+    W = savedW; H = savedH;
+
+    // Set canvas to GIF dimensions
+    cv.width = gifW; cv.height = gifH;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+
+    // Background
+    ctx.fillStyle = '#060910'; ctx.fillRect(0, 0, gifW, gifH);
+
+    // Dot grid at GIF size
+    ctx.fillStyle = 'rgba(255,255,255,.016)';
+    const gs = 28;
+    for(let x = gs/2; x < gifW; x += gs) for(let y = gs/2; y < gifH; y += gs) {
+      ctx.beginPath(); ctx.arc(x,y,.85,0,Math.PI*2); ctx.fill();
+    }
+
+    // Apply zoom and translate so content bounds map to GIF canvas
+    ctx.save();
+    ctx.scale(savedZoom, savedZoom);
+    ctx.translate(-bounds.x, -bounds.y);
+
+    A.step = stepIdx;
+    A.t = t;
+    A.loopT = loopT;
+    A.holding = t >= 1;
+
+    // Draw content (uses W/H for layout, which is savedW/savedH)
+    const L = lay();
+    const s = A.step >= 0 && A.step < STEPS.length ? STEPS[A.step] : null;
+    const et = eio(Math.min(A.t, 1));
+
+    if (s) {
+      const ph = PHASES.find(p => p.id === s.phase);
+      if (ph) { ctx.fillStyle = rgba(ph.color, .028); ctx.fillRect(bounds.x-50,bounds.y-50,bounds.w+100,bounds.h+100); }
+    }
+
+    drawWires(L, s, et);
+    L.px.forEach((_, i) => {
+      let glow = 0, active = false;
+      if (s) {
+        if (s.loop && s.from === i) {
+          const lt = A.loopT / LOOP_DUR; glow = 0.55 + lt * 0.45; active = true;
+        } else if (!s.loop && s.from === i) {
+          glow = Math.max(0, 1 - et * 2.2); active = true;
+        } else if (!s.loop && s.to === i) {
+          glow = Math.max(0, (et - 0.45) * 2); active = true;
+        }
+      }
+      drawParticipant(i, L, glow, active);
+    });
+    if (s) drawMsgAnim(s, L, et);
+    drawMsgLabel(s, L);
+    if (s) drawPhaseLabel(s.phase);
+
+    ctx.restore();
+
+    offCtx.drawImage(cv, 0, 0);
+  }
+
+  async function renderAllFrames() {
+    for (let si = 0; si < STEPS.length; si++) {
+      const step = STEPS[si];
+      const isLoop = step.loop;
+      const animFrames = isLoop ? loopFrames : travelFrames;
+
+      for (let f = 0; f <= animFrames; f++) {
+        const t = f / animFrames;
+        renderFrame(si, isLoop ? 0 : t, isLoop ? t * LOOP_DUR : 0);
+        gif.addFrame(offCtx, { copy: true, delay: frameDelay });
+        frameCount++;
+      }
+
+      for (let f = 0; f < holdFrames; f++) {
+        renderFrame(si, 1, isLoop ? LOOP_DUR : 0);
+        gif.addFrame(offCtx, { copy: true, delay: frameDelay });
+        frameCount++;
+      }
+
+      fillEl.style.width = (frameCount / totalFrames * 100) + '%';
+      await new Promise(r => setTimeout(r, 0));
+    }
+  }
+
+  await renderAllFrames();
+
+  // Restore
+  W = savedW; H = savedH; dpr = savedDpr;
+  zoom = savedZoom; panX = savedPanX; panY = savedPanY;
+  cv.width = savedW * savedDpr; cv.height = savedH * savedDpr;
+  cv.style.width = savedW + 'px'; cv.style.height = savedH + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  A.step = savedStep; A.t = savedT; A.loopT = savedLoopT;
+  A.holding = savedHolding; A.playing = savedPlaying; A.lastTs = null;
+  updateUI();
+  draw();
+
+  statusEl.textContent = 'Encoding GIF (' + gifW + 'x' + gifH + ')...';
+  fillEl.style.width = '100%';
+
+  gif.on('progress', p => {
+    fillEl.style.width = (p * 100) + '%';
+  });
+
+  gif.on('finished', blob => {
+    overlay.classList.add('hidden');
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'sequence-animation.gif';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  });
+
+  gif.render();
+};
+
+// ── init ─────────────────────────────────────────────────────────────────────
+function resize() {
+  const wrap = document.getElementById('cvwrap');
+  if (!wrap) return;
+  W = wrap.clientWidth; H = wrap.clientHeight;
+  if (W === 0 || H === 0) return;
+  cv.width = W * dpr; cv.height = H * dpr;
+  cv.style.width = W + 'px'; cv.style.height = H + 'px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+new ResizeObserver(() => { ctx.setTransform(1,0,0,1,0,0); resize(); })
+  .observe(document.getElementById('cvwrap'));
+
+document.getElementById('mermaid-input').value = DEFAULT_MERMAID;
+showScreen('edit');
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
