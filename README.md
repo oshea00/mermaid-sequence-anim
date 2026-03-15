@@ -1,3 +1,28 @@
+# Mermaid Sequence Animator
+
+A browser-based tool that turns Mermaid `sequenceDiagram` markup into step-by-step animations rendered on an HTML canvas.
+
+## Overview
+
+Paste or upload a Mermaid sequence diagram and the tool parses it into individual steps — messages, notes, and loop/alt blocks — then animates them one at a time on a canvas with smooth transitions and participant lifelines.
+
+### Features
+
+- **Editor view** — paste Mermaid `sequenceDiagram` text directly or upload a `.md` / `.mmd` / `.txt` file
+- **Playback controls** — play, pause, step forward/backward, reset, and adjustable speed (0.5×–3×)
+- **Step panel** — sidebar listing every step grouped by phase; click any step to jump to it
+- **Progress bar** — scrub to any point in the animation
+- **Zoom & pan** — zoom in/out, fit-to-canvas, and click-drag to pan
+- **GIF export** — render the full animation to a downloadable GIF
+
+### Running locally
+
+```
+python main.py          # serves on http://localhost:8000
+python main.py 3000     # or specify a port
+```
+
+No dependencies are required beyond Python 3.13+.
 
 ## MCP Tool Calls
 ![sequence Animation](./sequence-animation.gif)
