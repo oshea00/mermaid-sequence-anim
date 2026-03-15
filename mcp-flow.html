@@ -8,64 +8,88 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%;background:#060910;overflow:hidden;font-family:'Inter',system-ui,sans-serif;color:#dde3ef}
+:root{
+  --bg:#060910;--fg:#dde3ef;--border:rgba(255,255,255,.05);
+  --btn-bg:rgba(255,255,255,.04);--btn-fg:rgba(255,255,255,.5);--btn-border:rgba(255,255,255,.08);
+  --dim-fg:rgba(255,255,255,.2);--input-bg:rgba(255,255,255,.04);--input-border:rgba(255,255,255,.1);
+  --overlay-bg:rgba(6,9,16,.85);--track-bg:rgba(255,255,255,.07);
+  --sitem-hover:rgba(255,255,255,.03);--sitem-active-bg:rgba(255,255,255,.05);
+  --sitem-active-border:rgba(255,255,255,.1);--scroll-thumb:rgba(255,255,255,.08);
+  --fg-hi:rgba(255,255,255,.75);--fg-med:rgba(255,255,255,.6);--fg-lo:rgba(255,255,255,.28);
+}
+body.light{
+  --bg:#f4f6fb;--fg:#1a2030;--border:rgba(0,0,0,.08);
+  --btn-bg:rgba(0,0,0,.05);--btn-fg:rgba(0,0,0,.5);--btn-border:rgba(0,0,0,.12);
+  --dim-fg:rgba(0,0,0,.3);--input-bg:rgba(0,0,0,.04);--input-border:rgba(0,0,0,.15);
+  --overlay-bg:rgba(244,246,251,.88);--track-bg:rgba(0,0,0,.10);
+  --sitem-hover:rgba(0,0,0,.04);--sitem-active-bg:rgba(0,0,0,.06);
+  --sitem-active-border:rgba(0,0,0,.14);--scroll-thumb:rgba(0,0,0,.12);
+  --fg-hi:rgba(0,0,0,.7);--fg-med:rgba(0,0,0,.6);--fg-lo:rgba(0,0,0,.4);
+}
+html,body{height:100%;background:var(--bg);overflow:hidden;font-family:'Inter',system-ui,sans-serif;color:var(--fg)}
 #app{display:flex;flex-direction:column;height:100vh}
-#hdr{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:9px 18px;border-bottom:1px solid rgba(255,255,255,.05)}
+#hdr{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:9px 18px;border-bottom:1px solid var(--border)}
 .pulse{width:6px;height:6px;border-radius:50%;background:#4ECDC4;animation:blink 2.5s ease-in-out infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.12}}
-#hdr h1{font-size:14px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.75)}
+#hdr h1{font-size:14px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--fg-hi)}
 #body{flex:1;display:flex;min-height:0}
 #cvwrap{flex:1;overflow:hidden;position:relative;cursor:grab}
 #cvwrap.dragging{cursor:grabbing}
 canvas{display:block}
-#panel{width:220px;border-left:1px solid rgba(255,255,255,.05);overflow-y:auto;padding:6px 8px;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.08) transparent}
+#panel{width:220px;border-left:1px solid var(--border);overflow-y:auto;padding:6px 8px;scrollbar-width:thin;scrollbar-color:var(--scroll-thumb) transparent}
 #panel::-webkit-scrollbar{width:3px}
-#panel::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+#panel::-webkit-scrollbar-thumb{background:var(--scroll-thumb);border-radius:2px}
 .ph-hdr{font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:10px 8px 4px;margin-top:2px}
 .sitem{display:flex;align-items:flex-start;gap:7px;padding:5px 8px;border-radius:5px;cursor:pointer;margin-bottom:2px;opacity:.25;transition:opacity .2s,background .2s,outline .15s}
-.sitem:hover{opacity:.5;background:rgba(255,255,255,.03)}
+.sitem:hover{opacity:.5;background:var(--sitem-hover)}
 .sitem.done{opacity:.5}
-.sitem.active{opacity:1;background:rgba(255,255,255,.05);outline:1px solid rgba(255,255,255,.1);outline-offset:-1px}
+.sitem.active{opacity:1;background:var(--sitem-active-bg);outline:1px solid var(--sitem-active-border);outline-offset:-1px}
 .sdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:3px}
 .sinfo{min-width:0;flex:1}
-.sdir{font-size:10px;color:rgba(255,255,255,.6);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.smsg{font-size:9px;font-family:'Space Mono','Courier New',monospace;color:rgba(255,255,255,.28);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#foot{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:9px 18px;border-top:1px solid rgba(255,255,255,.05)}
-.btn{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);color:rgba(255,255,255,.5);border-radius:7px;cursor:pointer;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;transition:all .12s;font-family:inherit}
-.btn:hover{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.15)}
+.sdir{font-size:10px;color:var(--fg-med);font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.smsg{font-size:9px;font-family:'Space Mono','Courier New',monospace;color:var(--fg-lo);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#foot{flex-shrink:0;display:flex;align-items:center;gap:10px;padding:9px 18px;border-top:1px solid var(--border)}
+.btn{background:var(--btn-bg);border:1px solid var(--btn-border);color:var(--btn-fg);border-radius:7px;cursor:pointer;width:30px;height:30px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;transition:all .12s;font-family:inherit}
+.btn:hover{background:rgba(78,205,196,.15);color:#4ECDC4;border-color:rgba(78,205,196,.3)}
 #bplay{width:38px;height:38px;font-size:15px;background:rgba(78,205,196,.1);border-color:rgba(78,205,196,.3);color:#4ECDC4}
 #bplay:hover{background:rgba(78,205,196,.2)}
-.ptrack{flex:1;height:2px;background:rgba(255,255,255,.07);border-radius:1px;cursor:pointer;position:relative}
+.ptrack{flex:1;height:2px;background:var(--track-bg);border-radius:1px;cursor:pointer;position:relative}
 .pfill{height:100%;background:linear-gradient(90deg,#4ECDC4,#A78BFA);border-radius:1px;pointer-events:none;transition:width .2s}
-.scnt{font-size:10px;color:rgba(255,255,255,.2);min-width:48px;text-align:right;font-variant-numeric:tabular-nums}
+.scnt{font-size:10px;color:var(--dim-fg);min-width:48px;text-align:right;font-variant-numeric:tabular-nums}
 .spdw{display:flex;align-items:center;gap:6px;flex-shrink:0}
-.spdw label{font-size:9px;color:rgba(255,255,255,.2)}
+.spdw label{font-size:9px;color:var(--dim-fg)}
 #spd{width:56px;accent-color:#4ECDC4;cursor:pointer}
 .hidden{display:none!important}
-#anim-screen{flex:1;display:flex;flex-direction:column;min-height:0}
+#anim-screen{flex:1;display:flex;flex-direction:column;min-height:0;position:relative}
 /* editor screen */
 #edit-screen{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;gap:20px}
-#edit-screen textarea{width:100%;max-width:760px;height:50vh;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;color:#dde3ef;font-family:'Space Mono','Courier New',monospace;font-size:13px;padding:16px;resize:vertical;outline:none;tab-size:4}
+#edit-screen textarea{width:100%;max-width:760px;height:50vh;background:var(--input-bg);border:1px solid var(--input-border);border-radius:10px;color:var(--fg);font-family:'Space Mono','Courier New',monospace;font-size:13px;padding:16px;resize:vertical;outline:none;tab-size:4}
 #edit-screen textarea:focus{border-color:rgba(78,205,196,.4)}
 #edit-screen .edit-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center}
-#edit-screen .edit-actions label{font-size:12px;color:rgba(255,255,255,.4)}
+#edit-screen .edit-actions label{font-size:12px;color:var(--dim-fg)}
 .btn-primary{background:rgba(78,205,196,.15);border:1px solid rgba(78,205,196,.4);color:#4ECDC4;border-radius:8px;cursor:pointer;padding:8px 22px;font-size:13px;font-weight:600;font-family:inherit;transition:all .12s}
 .btn-primary:hover{background:rgba(78,205,196,.25)}
-.btn-secondary{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.6);border-radius:8px;cursor:pointer;padding:8px 18px;font-size:13px;font-family:inherit;transition:all .12s}
-.btn-secondary:hover{background:rgba(255,255,255,.08);color:#fff}
+.btn-secondary{background:var(--btn-bg);border:1px solid var(--input-border);color:var(--btn-fg);border-radius:8px;cursor:pointer;padding:8px 18px;font-size:13px;font-family:inherit;transition:all .12s}
+.btn-secondary:hover{background:var(--sitem-hover);color:var(--fg)}
 #file-input{display:none}
 #parse-error{color:#FF6B8A;font-size:12px;max-width:760px;text-align:center;min-height:18px}
 /* GIF export */
 .btn-gif{background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.3);color:#A78BFA;border-radius:7px;cursor:pointer;padding:4px 14px;font-size:11px;font-weight:500;font-family:inherit;transition:all .12s;flex-shrink:0}
 .btn-gif:hover{background:rgba(167,139,250,.22)}
-#gif-overlay{position:fixed;inset:0;background:rgba(6,9,16,.85);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:100}
-#gif-overlay .gif-label{font-size:14px;color:rgba(255,255,255,.7)}
-#gif-overlay .gif-bar{width:280px;height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+#gif-overlay{position:fixed;inset:0;background:var(--overlay-bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;z-index:100}
+#gif-overlay .gif-label{font-size:14px;color:var(--fg-med)}
+#gif-overlay .gif-bar{width:280px;height:4px;background:var(--track-bg);border-radius:2px;overflow:hidden}
 #gif-overlay .gif-fill{height:100%;background:linear-gradient(90deg,#4ECDC4,#A78BFA);border-radius:2px;transition:width .1s}
 /* zoom controls */
 .zoom-grp{display:flex;align-items:center;gap:4px;flex-shrink:0}
 .zoom-grp .btn{width:26px;height:26px;font-size:14px}
-.zoom-lbl{font-size:10px;color:rgba(255,255,255,.25);min-width:36px;text-align:center;font-variant-numeric:tabular-nums}
+.zoom-lbl{font-size:10px;color:var(--dim-fg);min-width:36px;text-align:center;font-variant-numeric:tabular-nums}
+/* settings panel */
+#settings-panel{position:absolute;bottom:52px;left:18px;background:var(--overlay-bg);border:1px solid var(--border);border-radius:10px;padding:14px 18px;z-index:50;display:flex;flex-direction:column;gap:12px;min-width:240px}
+.settings-row{display:flex;align-items:center;gap:10px}
+.settings-row label{font-size:10px;color:var(--dim-fg);min-width:120px}
+.settings-row input[type=range]{flex:1;accent-color:#4ECDC4;cursor:pointer}
+.settings-row .sval{font-size:10px;color:var(--dim-fg);min-width:30px;text-align:right;font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
@@ -73,7 +97,9 @@ canvas{display:block}
   <div id="hdr">
     <div class="pulse"></div>
     <h1>Sequence Diagram Animator</h1>
-    <button class="btn-secondary hidden" id="bback" style="margin-left:auto;padding:4px 12px;font-size:11px">Back to Editor</button>
+    <span style="flex:1"></span>
+    <button class="btn-secondary hidden" id="bback" style="padding:4px 12px;font-size:11px">Back to Editor</button>
+    <button class="btn" id="btheme" title="Toggle theme">&#9680;</button>
   </div>
 
   <!-- Editor Screen -->
@@ -94,6 +120,38 @@ canvas{display:block}
       <div id="cvwrap"><canvas id="cv"></canvas></div>
       <div id="panel"></div>
     </div>
+    <div id="settings-panel" class="hidden">
+      <div class="settings-row">
+        <label>Participant Spacing</label>
+        <input type="range" id="spc-spacing" min="0.5" max="2.0" step="0.05" value="1.0">
+        <span class="sval" id="spc-spacing-val">1.0x</span>
+      </div>
+      <div class="settings-row">
+        <label>Line Weight</label>
+        <input type="range" id="spc-lineweight" min="0.5" max="3.0" step="0.1" value="1.0">
+        <span class="sval" id="spc-lineweight-val">1.0x</span>
+      </div>
+      <div class="settings-row">
+        <label>Participant Font</label>
+        <input type="range" id="spc-fontsize" min="0.6" max="2.0" step="0.05" value="1.0">
+        <span class="sval" id="spc-fontsize-val">1.0x</span>
+      </div>
+      <div class="settings-row">
+        <label>Message Font</label>
+        <input type="range" id="spc-msgfontsize" min="0.6" max="2.0" step="0.05" value="1.0">
+        <span class="sval" id="spc-msgfontsize-val">1.0x</span>
+      </div>
+      <div class="settings-row">
+        <label>Message Offset</label>
+        <input type="range" id="spc-msgoffset" min="0.2" max="3.0" step="0.05" value="1.0">
+        <span class="sval" id="spc-msgoffset-val">1.0x</span>
+      </div>
+      <div class="settings-row">
+        <label>Box Size</label>
+        <input type="range" id="spc-boxsize" min="0.5" max="2.0" step="0.05" value="1.0">
+        <span class="sval" id="spc-boxsize-val">1.0x</span>
+      </div>
+    </div>
     <div id="foot">
       <button class="btn" id="breset" title="Reset">&#8634;</button>
       <button class="btn" id="bprev" title="Prev step">&#9666;</button>
@@ -108,6 +166,7 @@ canvas{display:block}
         <button class="btn" id="bzin" title="Zoom in">+</button>
         <button class="btn" id="bzfit" title="Reset zoom" style="font-size:10px;width:28px">Fit</button>
       </div>
+      <button class="btn" id="bsettings" title="Settings">&#9881;</button>
       <button class="btn-gif" id="bgif">Export GIF</button>
     </div>
   </div>
@@ -120,6 +179,29 @@ canvas{display:block}
 <script>
 // ── mermaid parser ───────────────────────────────────────────────────────────
 const PALETTE = ['#FF6B8A','#4ECDC4','#FFB347','#A78BFA','#6BCB77','#45B7D1','#F7DC6F','#E879F9','#FB923C','#67E8F9'];
+
+// ── theme system ─────────────────────────────────────────────────────────────
+const THEMES = {
+  dark: {
+    bg: '#060910', dotGrid: 'rgba(255,255,255,.016)',
+    wireIdle: 'rgba(255,255,255,.06)', wireDot: 'rgba(255,255,255,.1)',
+    partBgIdle: 'rgba(255,255,255,.032)',
+    msgBgAlpha: 0.07, msgBorderAlpha: 0.24,
+    hintText: 'rgba(255,255,255,.25)', msgDotBg: 'rgba(0,0,0,.55)',
+  },
+  light: {
+    bg: '#f4f6fb', dotGrid: 'rgba(0,0,0,.04)',
+    wireIdle: 'rgba(0,0,0,.10)', wireDot: 'rgba(0,0,0,.18)',
+    partBgIdle: 'rgba(0,0,0,.04)',
+    msgBgAlpha: 0.09, msgBorderAlpha: 0.30,
+    hintText: 'rgba(0,0,0,.35)', msgDotBg: 'rgba(255,255,255,.70)',
+  }
+};
+let currentTheme = 'dark';
+function T() { return THEMES[currentTheme]; }
+
+// ── settings ─────────────────────────────────────────────────────────────────
+const SETTINGS = { spacingMult: 1.0, lineWeight: 1.0, fontSize: 1.0, msgFontSize: 1.0, msgOffset: 1.0, boxSize: 1.0 };
 
 function parseMermaid(text) {
   const lines = text.split('\n').map(l => l.trim()).filter(l => l && !l.startsWith('%%'));
@@ -285,15 +367,18 @@ function lay(aW, aH) {
   const n = PARTS.length;
   if (n === 0) return { n:0, pw:0, partH:0, padX:0, sp:0, partY:0, wireY:0, msgY:0, px:[] };
   const w = aW || W, h = aH || H;
-  const partH = 52, padX = 80;
-  const pw = n === 1 ? 108 : Math.min(108, (w - padX*2) / (n-1) * 0.78);
-  const sp = n === 1 ? 0 : (w - padX*2) / (n-1);
+  const partH = 52 * SETTINGS.boxSize, padX = 80;
+  const pw = (n === 1 ? 108 : Math.min(108, (w - padX*2) / (n-1) * 0.78)) * SETTINGS.boxSize;
+  const baseSp = n === 1 ? 0 : (w - padX*2) / (n-1);
+  const sp = baseSp * SETTINGS.spacingMult;
+  const totalW = padX * 2 + (n - 1) * sp;
+  const startX = (w - totalW) / 2 + padX;
   const partY = Math.max(26, h * .09);
   const wireY = partY + partH/2;
-  const msgY  = wireY + Math.min(65, h * .16);
+  const msgY  = wireY + Math.min(65, h * .16) * SETTINGS.msgOffset;
   return {
     n, pw, partH, padX, sp, partY, wireY, msgY,
-    px: PARTS.map((_,i) => n === 1 ? w/2 : padX + i * sp),
+    px: PARTS.map((_,i) => n === 1 ? w/2 : startX + i * sp),
   };
 }
 
@@ -314,8 +399,11 @@ function contentBounds() {
   let maxMsgH = 0;
   const tmpCv = document.createElement('canvas');
   const tmpCtx = tmpCv.getContext('2d');
-  tmpCtx.font = '12px "Space Mono","Courier New",monospace';
+  const fs = Math.round(12 * SETTINGS.msgFontSize);
+  tmpCtx.font = `${fs}px "Space Mono","Courier New",monospace`;
   const maxTextW = (right - left) - 28;
+  const msgLh = Math.round(19 * SETTINGS.msgFontSize);
+  const msgPad = Math.round(26 * SETTINGS.msgFontSize);
   for (const s of STEPS) {
     const words = s.msg.split(' ');
     let lines = 1, line = '';
@@ -324,7 +412,7 @@ function contentBounds() {
       if (tmpCtx.measureText(test).width > maxTextW && line) { lines++; line = w; }
       else line = test;
     }
-    maxMsgH = Math.max(maxMsgH, lines * 19 + 26);
+    maxMsgH = Math.max(maxMsgH, lines * msgLh + msgPad);
   }
   const bottom = L.msgY + maxMsgH + pad;
 
@@ -338,10 +426,10 @@ const A = { step:-1, t:1, holding:false, holdLeft:0, loopT:0, playing:false, spe
 // ── draw ─────────────────────────────────────────────────────────────────────
 function draw() {
   // clear and background (full canvas, no zoom)
-  ctx.fillStyle = '#060910'; ctx.fillRect(0,0,W,H);
+  ctx.fillStyle = T().bg; ctx.fillRect(0,0,W,H);
 
   // dot grid (unzoomed, anchored to viewport)
-  ctx.fillStyle = 'rgba(255,255,255,.016)';
+  ctx.fillStyle = T().dotGrid;
   const gs = 28;
   for(let x = gs/2; x < W; x += gs) for(let y = gs/2; y < H; y += gs) {
     ctx.beginPath(); ctx.arc(x,y,.85,0,Math.PI*2); ctx.fill();
@@ -388,7 +476,7 @@ function draw() {
 
   if (A.step < 0) {
     ctx.font = '500 13px Inter,sans-serif';
-    ctx.fillStyle = 'rgba(255,255,255,.25)';
+    ctx.fillStyle = T().hintText;
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText('Press \u25b6 to animate \u00b7 Step through manually with \u25c2 \u25b8', W/2, H*.73);
   }
@@ -398,23 +486,28 @@ function draw() {
 
 function drawWires(L, s, et) {
   if (L.n < 2) return;
-  const x0 = L.px[0], x1 = L.px[PARTS.length-1], wy = L.wireY;
+  const wy = L.wireY;
 
   ctx.save();
-  ctx.strokeStyle = 'rgba(255,255,255,.06)'; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(x0,wy); ctx.lineTo(x1,wy); ctx.stroke();
+  ctx.strokeStyle = T().wireIdle;
+  ctx.lineWidth = 1 * SETTINGS.lineWeight;
 
-  L.px.forEach(px => {
-    ctx.beginPath(); ctx.arc(px,wy,2.2,0,Math.PI*2);
-    ctx.fillStyle = 'rgba(255,255,255,.1)'; ctx.fill();
-  });
+  // draw segments between participant boxes (not through them)
+  for (let i = 0; i < L.n - 1; i++) {
+    const segX0 = L.px[i]   + L.pw / 2;  // right edge of participant i
+    const segX1 = L.px[i+1] - L.pw / 2;  // left edge of participant i+1
+    if (segX1 > segX0) {
+      ctx.beginPath(); ctx.moveTo(segX0, wy); ctx.lineTo(segX1, wy); ctx.stroke();
+    }
+  }
+
 
   if (s && !s.loop) {
     const fc = L.px[s.from], tc = L.px[s.to];
     const goRight = tc > fc;
     const xs = goRight ? fc + L.pw/2 : tc + L.pw/2;
     const xe = goRight ? tc - L.pw/2 : fc - L.pw/2;
-    ctx.strokeStyle = rgba(s.color,.28); ctx.lineWidth = 1.8;
+    ctx.strokeStyle = rgba(s.color,.28); ctx.lineWidth = 1.8 * SETTINGS.lineWeight;
     ctx.beginPath(); ctx.moveTo(xs,wy); ctx.lineTo(xe,wy); ctx.stroke();
   }
   ctx.restore();
@@ -430,18 +523,19 @@ function drawParticipant(i, L, glow, active) {
   if (glow > 0) { ctx.shadowColor = p.color; ctx.shadowBlur = 18 * glow; }
 
   rrect(x,y,pw,ph,8);
-  ctx.fillStyle = active ? rgba(p.color,.17) : 'rgba(255,255,255,.032)';
+  ctx.fillStyle = active ? rgba(p.color,.17) : T().partBgIdle;
   ctx.fill();
   ctx.strokeStyle = active ? rgba(p.color,.9) : rgba(p.color,.2);
-  ctx.lineWidth = active ? 1.3 : 0.6;
+  ctx.lineWidth = (active ? 1.3 : 0.6) * SETTINGS.lineWeight;
   rrect(x,y,pw,ph,8); ctx.stroke();
   ctx.shadowBlur = 0;
 
   const lines = p.label.split('\n');
-  ctx.font = '500 10px Inter,sans-serif';
+  const fs = Math.round(10 * SETTINGS.fontSize);
+  ctx.font = `500 ${fs}px Inter,sans-serif`;
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillStyle = active ? p.color : rgba(p.color,.55);
-  const lh = 13, th = lines.length * lh;
+  const lh = fs * 1.3, th = lines.length * lh;
   lines.forEach((ln,li) => ctx.fillText(ln, cx, y + ph/2 - th/2 + li*lh + lh/2));
 
   ctx.restore();
@@ -457,7 +551,7 @@ function drawMsgAnim(s, L, et) {
     const sweep  = Math.PI * 1.65 * progress;
 
     ctx.save();
-    ctx.strokeStyle = rgba(s.color,.9); ctx.lineWidth = 2.2;
+    ctx.strokeStyle = rgba(s.color,.9); ctx.lineWidth = 2.2 * SETTINGS.lineWeight;
     ctx.lineCap = 'round';
     ctx.shadowColor = s.color; ctx.shadowBlur = 10;
     ctx.beginPath(); ctx.arc(cx, wy, r, startA, startA + sweep); ctx.stroke();
@@ -493,7 +587,7 @@ function drawMsgAnim(s, L, et) {
   ctx.beginPath(); ctx.arc(px, wy, 8, 0, Math.PI*2);
   ctx.fillStyle = s.color; ctx.fill();
   ctx.shadowBlur = 0;
-  ctx.fillStyle = 'rgba(0,0,0,.55)';
+  ctx.fillStyle = T().msgDotBg;
   ctx.font = 'bold 9px sans-serif';
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText(dir > 0 ? '\u203a' : '\u2039', px, wy + .5);
@@ -503,7 +597,8 @@ function drawMsgAnim(s, L, et) {
 function drawMsgLabel(s, L) {
   if (!s) return;
   const maxW = W - 80;
-  const font = '12px "Space Mono","Courier New",monospace';
+  const fs = Math.round(12 * SETTINGS.msgFontSize);
+  const font = `${fs}px "Space Mono","Courier New",monospace`;
   ctx.font = font;
 
   const words = s.msg.split(' ');
@@ -515,34 +610,38 @@ function drawMsgLabel(s, L) {
   }
   if (line) lines.push(line);
 
-  const lh = 19, boxH = lines.length * lh + 26;
+  const lh = Math.round(19 * SETTINGS.msgFontSize);
+  const boxPad = Math.round(26 * SETTINGS.msgFontSize);
+  const boxH = lines.length * lh + boxPad;
   const boxW = Math.min(maxW, W - 56);
   const bx = (W - boxW) / 2, by = L.msgY;
 
   ctx.save();
   rrect(bx, by, boxW, boxH, 10);
-  ctx.fillStyle = rgba(s.color, .07); ctx.fill();
-  ctx.strokeStyle = rgba(s.color, .24); ctx.lineWidth = .75;
+  ctx.fillStyle = rgba(s.color, T().msgBgAlpha); ctx.fill();
+  ctx.strokeStyle = rgba(s.color, T().msgBorderAlpha); ctx.lineWidth = .75;
   rrect(bx, by, boxW, boxH, 10); ctx.stroke();
 
   const fn = PARTS[s.from].name.replace('\n',' ');
   const tn = PARTS[s.to].name.replace('\n',' ');
   const dirStr = s.loop ? '\u21a9  ' + fn : fn + '  \u2192  ' + tn;
-  ctx.font = '500 10px Inter,sans-serif';
+  const headerFs = Math.round(10 * SETTINGS.msgFontSize);
+  ctx.font = `500 ${headerFs}px Inter,sans-serif`;
   ctx.fillStyle = rgba(s.color, .65);
   ctx.textAlign = 'left'; ctx.textBaseline = 'top';
-  ctx.fillText(dirStr, bx + 13, by + 7);
+  ctx.fillText(dirStr, bx + 13, by + Math.round(7 * SETTINGS.msgFontSize));
 
   ctx.font = font;
   ctx.fillStyle = rgba(s.color, .9);
-  lines.forEach((l, i) => ctx.fillText(l, bx + 13, by + 21 + i * lh));
+  lines.forEach((l, i) => ctx.fillText(l, bx + 13, by + Math.round(21 * SETTINGS.msgFontSize) + i * lh));
   ctx.restore();
 }
 
 function drawPhaseLabel(phId) {
   const ph = PHASES.find(p => p.id === phId); if (!ph) return;
   ctx.save();
-  ctx.font = '500 10px Inter,sans-serif';
+  const fs = Math.round(10 * SETTINGS.fontSize);
+  ctx.font = `500 ${fs}px Inter,sans-serif`;
   const tw = ctx.measureText(ph.label).width;
   const pw = tw + 22, px = W - pw - 14, py = 13, ph2 = 22;
   rrect(px,py,pw,ph2,5);
@@ -666,6 +765,39 @@ document.getElementById('ptrack').onclick = e => {
 document.getElementById('bback').onclick = () => {
   A.playing = false;
   showScreen('edit');
+};
+
+document.getElementById('btheme').onclick = () => {
+  currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  document.body.classList.toggle('light', currentTheme === 'light');
+};
+
+document.getElementById('bsettings').onclick = () =>
+  document.getElementById('settings-panel').classList.toggle('hidden');
+
+document.getElementById('spc-spacing').oninput = e => {
+  SETTINGS.spacingMult = parseFloat(e.target.value);
+  document.getElementById('spc-spacing-val').textContent = SETTINGS.spacingMult.toFixed(2)+'x';
+};
+document.getElementById('spc-lineweight').oninput = e => {
+  SETTINGS.lineWeight = parseFloat(e.target.value);
+  document.getElementById('spc-lineweight-val').textContent = SETTINGS.lineWeight.toFixed(1)+'x';
+};
+document.getElementById('spc-fontsize').oninput = e => {
+  SETTINGS.fontSize = parseFloat(e.target.value);
+  document.getElementById('spc-fontsize-val').textContent = SETTINGS.fontSize.toFixed(2)+'x';
+};
+document.getElementById('spc-msgfontsize').oninput = e => {
+  SETTINGS.msgFontSize = parseFloat(e.target.value);
+  document.getElementById('spc-msgfontsize-val').textContent = SETTINGS.msgFontSize.toFixed(2)+'x';
+};
+document.getElementById('spc-msgoffset').oninput = e => {
+  SETTINGS.msgOffset = parseFloat(e.target.value);
+  document.getElementById('spc-msgoffset-val').textContent = SETTINGS.msgOffset.toFixed(2)+'x';
+};
+document.getElementById('spc-boxsize').oninput = e => {
+  SETTINGS.boxSize = parseFloat(e.target.value);
+  document.getElementById('spc-boxsize-val').textContent = SETTINGS.boxSize.toFixed(2)+'x';
 };
 
 document.getElementById('bload').onclick = () => {
@@ -856,10 +988,10 @@ document.getElementById('bgif').onclick = async () => {
     ctx.setTransform(1, 0, 0, 1, 0, 0);
 
     // Background
-    ctx.fillStyle = '#060910'; ctx.fillRect(0, 0, gifW, gifH);
+    ctx.fillStyle = T().bg; ctx.fillRect(0, 0, gifW, gifH);
 
     // Dot grid at GIF size
-    ctx.fillStyle = 'rgba(255,255,255,.016)';
+    ctx.fillStyle = T().dotGrid;
     const gs = 28;
     for(let x = gs/2; x < gifW; x += gs) for(let y = gs/2; y < gifH; y += gs) {
       ctx.beginPath(); ctx.arc(x,y,.85,0,Math.PI*2); ctx.fill();
