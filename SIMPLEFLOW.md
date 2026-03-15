@@ -1,5 +1,5 @@
 ### Standard Message Flow (No Tools)
-
+![Standard flow](./standardflow.gif)
 ```mermaid
 sequenceDiagram
     participant User

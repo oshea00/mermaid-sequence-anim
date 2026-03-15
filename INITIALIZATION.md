@@ -1,6 +1,7 @@
 ### Initialization Sequence
 
 This diagram shows how MCP tools are discovered and formatted for OpenAI during startup:
+![initialization flow](./initialize-flow.gif)
 
 ```mermaid
 sequenceDiagram
