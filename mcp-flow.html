@@ -9,22 +9,44 @@
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
-  --bg:#060910;--fg:#dde3ef;--border:rgba(255,255,255,.05);
-  --btn-bg:rgba(255,255,255,.04);--btn-fg:rgba(255,255,255,.5);--btn-border:rgba(255,255,255,.08);
-  --dim-fg:rgba(255,255,255,.2);--input-bg:rgba(255,255,255,.04);--input-border:rgba(255,255,255,.1);
-  --overlay-bg:rgba(6,9,16,.85);--track-bg:rgba(255,255,255,.07);
-  --sitem-hover:rgba(255,255,255,.03);--sitem-active-bg:rgba(255,255,255,.05);
-  --sitem-active-border:rgba(255,255,255,.1);--scroll-thumb:rgba(255,255,255,.08);
-  --fg-hi:rgba(255,255,255,.75);--fg-med:rgba(255,255,255,.6);--fg-lo:rgba(255,255,255,.28);
+  --bg:#060910;
+  --fg:#dde3ef;
+  --border:rgba(255,255,255,.05);
+  --btn-bg:rgba(255,255,255,.04);
+  --btn-fg:rgba(255,255,255,.5);
+  --btn-border:rgba(255,255,255,.08);
+  --dim-fg:rgba(255,255,255,.2);
+  --input-bg:rgba(255,255,255,.04);
+  --input-border:rgba(255,255,255,.1);
+  --overlay-bg:rgba(6,9,16,.85);
+  --track-bg:rgba(255,255,255,.07);
+  --sitem-hover:rgba(255,255,255,.03);
+  --sitem-active-bg:rgba(255,255,255,.05);
+  --sitem-active-border:rgba(255,255,255,.1);
+  --scroll-thumb:rgba(255,255,255,.08);
+  --fg-hi:rgba(255,255,255,.75);
+  --fg-med:rgba(255,255,255,.6);
+  --fg-lo:rgba(255,255,255,.28);
 }
 body.light{
-  --bg:#f4f6fb;--fg:#1a2030;--border:rgba(0,0,0,.08);
-  --btn-bg:rgba(0,0,0,.05);--btn-fg:rgba(0,0,0,.5);--btn-border:rgba(0,0,0,.12);
-  --dim-fg:rgba(0,0,0,.3);--input-bg:rgba(0,0,0,.04);--input-border:rgba(0,0,0,.15);
-  --overlay-bg:rgba(244,246,251,.88);--track-bg:rgba(0,0,0,.10);
-  --sitem-hover:rgba(0,0,0,.04);--sitem-active-bg:rgba(0,0,0,.06);
-  --sitem-active-border:rgba(0,0,0,.14);--scroll-thumb:rgba(0,0,0,.12);
-  --fg-hi:rgba(0,0,0,.7);--fg-med:rgba(0,0,0,.6);--fg-lo:rgba(0,0,0,.4);
+  --bg:#f4f6fb;
+  --fg:#1a2030;
+  --border:rgba(0,0,0,.08);
+  --btn-bg:rgba(0,0,0,.05);
+  --btn-fg:rgba(0,0,0,.5);
+  --btn-border:rgba(0,0,0,.12);
+  --dim-fg:rgba(0,0,0,.3);
+  --input-bg:rgba(0,0,0,.04);
+  --input-border:rgba(0,0,0,.15);
+  --overlay-bg:rgba(244,246,251,.88);
+  --track-bg:rgba(0,0,0,.10);
+  --sitem-hover:rgba(0,0,0,.04);
+  --sitem-active-bg:rgba(0,0,0,.06);
+  --sitem-active-border:rgba(0,0,0,.14);
+  --scroll-thumb:rgba(0,0,0,.12);
+  --fg-hi:rgba(0,0,0,.7);
+  --fg-med:rgba(0,0,0,.7);
+  --fg-lo:rgba(0,0,0,.7);
 }
 html,body{height:100%;background:var(--bg);overflow:hidden;font-family:'Inter',system-ui,sans-serif;color:var(--fg)}
 #app{display:flex;flex-direction:column;height:100vh}
@@ -40,7 +62,7 @@ canvas{display:block}
 #panel::-webkit-scrollbar{width:3px}
 #panel::-webkit-scrollbar-thumb{background:var(--scroll-thumb);border-radius:2px}
 .ph-hdr{font-size:9px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:10px 8px 4px;margin-top:2px}
-.sitem{display:flex;align-items:flex-start;gap:7px;padding:5px 8px;border-radius:5px;cursor:pointer;margin-bottom:2px;opacity:.25;transition:opacity .2s,background .2s,outline .15s}
+.sitem{display:flex;align-items:flex-start;gap:7px;padding:5px 8px;border-radius:5px;cursor:pointer;margin-bottom:2px;opacity:.5;transition:opacity .2s,background .2s,outline .15s}
 .sitem:hover{opacity:.5;background:var(--sitem-hover)}
 .sitem.done{opacity:.5}
 .sitem.active{opacity:1;background:var(--sitem-active-bg);outline:1px solid var(--sitem-active-border);outline-offset:-1px}
@@ -178,27 +200,38 @@ canvas{display:block}
 </div>
 <script>
 // ── mermaid parser ───────────────────────────────────────────────────────────
-const PALETTE = ['#FF6B8A','#4ECDC4','#FFB347','#A78BFA','#6BCB77','#45B7D1','#F7DC6F','#E879F9','#FB923C','#67E8F9'];
+//                 red      cyan     orangelgt    purple    green      blue      yellow    pink    orange   cyanlgt
+const PALETTE_DARK  = ['#FF6B8A','#4ECDC4','#FFB347','#A78BFA','#6BCB77','#45B7D1','#F7DC6F','#E879F9','#FB923C','#67E8F9'];
+const PALETTE_LIGHT = ['#C2185B','#00796B','#E65100','#5E35B1','#2E7D32','#1565C0','#F57F17','#6A1B9A','#BF360C','#006064'];
 
 // ── theme system ─────────────────────────────────────────────────────────────
 const THEMES = {
   dark: {
-    bg: '#060910', dotGrid: 'rgba(255,255,255,.016)',
-    wireIdle: 'rgba(255,255,255,.06)', wireDot: 'rgba(255,255,255,.1)',
+    bg: '#060910', 
+    dotGrid: 'rgba(255,255,255,.016)',
+    wireIdle: 'rgba(255,255,255,.06)', 
+    wireDot: 'rgba(255,255,255,.1)',
     partBgIdle: 'rgba(255,255,255,.032)',
-    msgBgAlpha: 0.07, msgBorderAlpha: 0.24,
-    hintText: 'rgba(255,255,255,.25)', msgDotBg: 'rgba(0,0,0,.55)',
+    msgBgAlpha: 0.07, 
+    msgBorderAlpha: 0.24,
+    hintText: 'rgba(255,255,255,.25)', 
+    msgDotBg: 'rgba(0,0,0,.55)',
   },
   light: {
-    bg: '#f4f6fb', dotGrid: 'rgba(0,0,0,.04)',
-    wireIdle: 'rgba(0,0,0,.10)', wireDot: 'rgba(0,0,0,.18)',
+    bg: '#f4f6fb', 
+    dotGrid: 'rgba(0,0,0,.04)',
+    wireIdle: 'rgba(0,0,0,.10)', 
+    wireDot: 'rgba(0,0,0,.18)',
     partBgIdle: 'rgba(0,0,0,.04)',
-    msgBgAlpha: 0.09, msgBorderAlpha: 0.30,
-    hintText: 'rgba(0,0,0,.35)', msgDotBg: 'rgba(255,255,255,.70)',
+    msgBgAlpha: 0.09, 
+    msgBorderAlpha: 0.30,
+    hintText: 'rgba(0,0,0,.35)', 
+    msgDotBg: 'rgba(255,255,255,.70)',
   }
 };
 let currentTheme = 'dark';
 function T() { return THEMES[currentTheme]; }
+function pcolor(e) { return currentTheme === 'dark' ? e.colorDark : e.colorLight; }
 
 // ── settings ─────────────────────────────────────────────────────────────────
 const SETTINGS = { spacingMult: 1.0, lineWeight: 1.0, fontSize: 1.0, msgFontSize: 1.0, msgOffset: 1.0, boxSize: 1.0 };
@@ -217,8 +250,9 @@ function parseMermaid(text) {
   function getOrCreatePart(name) {
     if (partMap.has(name)) return partMap.get(name);
     const idx = partMap.size;
-    const color = PALETTE[idx % PALETTE.length];
-    const entry = { index: idx, name, label: name, color };
+    const colorDark  = PALETTE_DARK[idx % PALETTE_DARK.length];
+    const colorLight = PALETTE_LIGHT[idx % PALETTE_LIGHT.length];
+    const entry = { index: idx, name, label: name, colorDark, colorLight };
     partMap.set(name, entry);
     colorIdx++;
     return entry;
@@ -242,8 +276,9 @@ function parseMermaid(text) {
     if (noteM) {
       const desc = noteM[2].replace(/<br\s*\/?>/gi, ' ').trim();
       phaseId++;
-      const phColor = steps.length > 0 ? steps[steps.length - 1].color : PALETTE[phaseId % PALETTE.length];
-      phases.push({ id: phaseId, label: desc, color: phColor });
+      const phColorDark  = steps.length > 0 ? steps[steps.length-1].colorDark  : PALETTE_DARK[phaseId % PALETTE_DARK.length];
+      const phColorLight = steps.length > 0 ? steps[steps.length-1].colorLight : PALETTE_LIGHT[phaseId % PALETTE_LIGHT.length];
+      phases.push({ id: phaseId, label: desc, colorDark: phColorDark, colorLight: phColorLight });
       currentPhase = phaseId;
       continue;
     }
@@ -258,7 +293,7 @@ function parseMermaid(text) {
       const isLoop = fromP.index === toP.index;
       const step = {
         from: fromP.index, to: toP.index,
-        msg: msg || '(no message)', color: fromP.color,
+        msg: msg || '(no message)', colorDark: fromP.colorDark, colorLight: fromP.colorLight,
         phase: currentPhase,
         ...(isLoop && { loop: true })
       };
@@ -267,7 +302,8 @@ function parseMermaid(text) {
       if (currentPhase > 0) {
         const ph = phases.find(p => p.id === currentPhase);
         if (ph && ph._colorSet === undefined) {
-          ph.color = fromP.color;
+          ph.colorDark  = fromP.colorDark;
+          ph.colorLight = fromP.colorLight;
           ph._colorSet = true;
         }
       }
@@ -280,7 +316,7 @@ function parseMermaid(text) {
   }
 
   if (phases.length === 0) {
-    phases.push({ id: 1, label: 'Sequence', color: steps[0].color });
+    phases.push({ id: 1, label: 'Sequence', colorDark: steps[0].colorDark, colorLight: steps[0].colorLight });
     for (const s of steps) s.phase = 1;
   }
 
@@ -291,7 +327,7 @@ function parseMermaid(text) {
 
   const PARTS = [];
   for (const [, v] of partMap) {
-    PARTS[v.index] = { name: v.name, label: v.label, color: v.color };
+    PARTS[v.index] = { name: v.name, label: v.label, colorDark: v.colorDark, colorLight: v.colorLight };
   }
 
   for (const ph of phases) delete ph._colorSet;
@@ -450,7 +486,7 @@ function draw() {
   // phase tint (covers visible area)
   if (s) {
     const ph = PHASES.find(p => p.id === s.phase);
-    if (ph) { ctx.fillStyle = rgba(ph.color, .028); ctx.fillRect(-W,0-H,W*3,H*3); }
+    if (ph) { ctx.fillStyle = rgba(pcolor(ph), .028); ctx.fillRect(-W,0-H,W*3,H*3); }
   }
 
   drawWires(L, s, et);
@@ -507,7 +543,7 @@ function drawWires(L, s, et) {
     const goRight = tc > fc;
     const xs = goRight ? fc + L.pw/2 : tc + L.pw/2;
     const xe = goRight ? tc - L.pw/2 : fc - L.pw/2;
-    ctx.strokeStyle = rgba(s.color,.28); ctx.lineWidth = 1.8 * SETTINGS.lineWeight;
+    ctx.strokeStyle = rgba(pcolor(s),.28); ctx.lineWidth = 1.8 * SETTINGS.lineWeight;
     ctx.beginPath(); ctx.moveTo(xs,wy); ctx.lineTo(xe,wy); ctx.stroke();
   }
   ctx.restore();
@@ -520,13 +556,13 @@ function drawParticipant(i, L, glow, active) {
   const x = cx - pw/2;
 
   ctx.save();
-  if (glow > 0) { ctx.shadowColor = p.color; ctx.shadowBlur = 18 * glow; }
+  if (glow > 0) { ctx.shadowColor = pcolor(p); ctx.shadowBlur = 18 * glow; }
 
   rrect(x,y,pw,ph,8);
-  ctx.fillStyle = active ? rgba(p.color,.17) : T().partBgIdle;
+  ctx.fillStyle = rgba(pcolor(p),.17);
   ctx.fill();
-  ctx.strokeStyle = active ? rgba(p.color,.9) : rgba(p.color,.2);
-  ctx.lineWidth = (active ? 1.3 : 0.6) * SETTINGS.lineWeight;
+  ctx.strokeStyle = rgba(pcolor(p),.9);
+  ctx.lineWidth = 1.3 * SETTINGS.lineWeight;
   rrect(x,y,pw,ph,8); ctx.stroke();
   ctx.shadowBlur = 0;
 
@@ -534,7 +570,7 @@ function drawParticipant(i, L, glow, active) {
   const fs = Math.round(10 * SETTINGS.fontSize);
   ctx.font = `500 ${fs}px Inter,sans-serif`;
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillStyle = active ? p.color : rgba(p.color,.55);
+  ctx.fillStyle = pcolor(p);
   const lh = fs * 1.3, th = lines.length * lh;
   lines.forEach((ln,li) => ctx.fillText(ln, cx, y + ph/2 - th/2 + li*lh + lh/2));
 
@@ -551,16 +587,16 @@ function drawMsgAnim(s, L, et) {
     const sweep  = Math.PI * 1.65 * progress;
 
     ctx.save();
-    ctx.strokeStyle = rgba(s.color,.9); ctx.lineWidth = 2.2 * SETTINGS.lineWeight;
+    ctx.strokeStyle = rgba(pcolor(s),.9); ctx.lineWidth = 2.2 * SETTINGS.lineWeight;
     ctx.lineCap = 'round';
-    ctx.shadowColor = s.color; ctx.shadowBlur = 10;
+    ctx.shadowColor = pcolor(s); ctx.shadowBlur = 10;
     ctx.beginPath(); ctx.arc(cx, wy, r, startA, startA + sweep); ctx.stroke();
 
     const tipA = startA + sweep;
     const tipX = cx + Math.cos(tipA)*r, tipY = wy + Math.sin(tipA)*r;
     ctx.shadowBlur = 12;
     ctx.beginPath(); ctx.arc(tipX, tipY, 5.5, 0, Math.PI*2);
-    ctx.fillStyle = s.color; ctx.fill();
+    ctx.fillStyle = pcolor(s); ctx.fill();
     ctx.restore();
     return;
   }
@@ -578,14 +614,14 @@ function drawMsgAnim(s, L, et) {
     ctx.save();
     ctx.globalAlpha = Math.max(0, 0.32 - k * .05);
     ctx.beginPath(); ctx.arc(tpx, wy, Math.max(1, 5.5 - k*.7), 0, Math.PI*2);
-    ctx.fillStyle = s.color; ctx.fill();
+    ctx.fillStyle = pcolor(s); ctx.fill();
     ctx.restore();
   }
 
   ctx.save();
-  ctx.shadowColor = s.color; ctx.shadowBlur = 16;
+  ctx.shadowColor = pcolor(s); ctx.shadowBlur = 16;
   ctx.beginPath(); ctx.arc(px, wy, 8, 0, Math.PI*2);
-  ctx.fillStyle = s.color; ctx.fill();
+  ctx.fillStyle = pcolor(s); ctx.fill();
   ctx.shadowBlur = 0;
   ctx.fillStyle = T().msgDotBg;
   ctx.font = 'bold 9px sans-serif';
@@ -618,8 +654,8 @@ function drawMsgLabel(s, L) {
 
   ctx.save();
   rrect(bx, by, boxW, boxH, 10);
-  ctx.fillStyle = rgba(s.color, T().msgBgAlpha); ctx.fill();
-  ctx.strokeStyle = rgba(s.color, T().msgBorderAlpha); ctx.lineWidth = .75;
+  ctx.fillStyle = rgba(pcolor(s), T().msgBgAlpha); ctx.fill();
+  ctx.strokeStyle = rgba(pcolor(s), T().msgBorderAlpha); ctx.lineWidth = .75;
   rrect(bx, by, boxW, boxH, 10); ctx.stroke();
 
   const fn = PARTS[s.from].name.replace('\n',' ');
@@ -627,12 +663,12 @@ function drawMsgLabel(s, L) {
   const dirStr = s.loop ? '\u21a9  ' + fn : fn + '  \u2192  ' + tn;
   const headerFs = Math.round(10 * SETTINGS.msgFontSize);
   ctx.font = `500 ${headerFs}px Inter,sans-serif`;
-  ctx.fillStyle = rgba(s.color, .65);
+  ctx.fillStyle = rgba(pcolor(s), .65);
   ctx.textAlign = 'left'; ctx.textBaseline = 'top';
   ctx.fillText(dirStr, bx + 13, by + Math.round(7 * SETTINGS.msgFontSize));
 
   ctx.font = font;
-  ctx.fillStyle = rgba(s.color, .9);
+  ctx.fillStyle = rgba(pcolor(s), .9);
   lines.forEach((l, i) => ctx.fillText(l, bx + 13, by + Math.round(21 * SETTINGS.msgFontSize) + i * lh));
   ctx.restore();
 }
@@ -645,10 +681,10 @@ function drawPhaseLabel(phId) {
   const tw = ctx.measureText(ph.label).width;
   const pw = tw + 22, px = W - pw - 14, py = 13, ph2 = 22;
   rrect(px,py,pw,ph2,5);
-  ctx.fillStyle = rgba(ph.color,.1); ctx.fill();
-  ctx.strokeStyle = rgba(ph.color,.28); ctx.lineWidth = .6;
+  ctx.fillStyle = rgba(pcolor(ph),.1); ctx.fill();
+  ctx.strokeStyle = rgba(pcolor(ph),.28); ctx.lineWidth = .6;
   rrect(px,py,pw,ph2,5); ctx.stroke();
-  ctx.fillStyle = rgba(ph.color,.82);
+  ctx.fillStyle = rgba(pcolor(ph),.82);
   ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
   ctx.fillText(ph.label, px + 11, py + ph2/2);
   ctx.restore();
@@ -666,7 +702,7 @@ function buildSidebar() {
       const el = document.createElement('div');
       el.className = 'ph-hdr';
       el.textContent = ph ? ph.label : 'Steps';
-      el.style.color = ph ? rgba(ph.color, .7) : 'rgba(255,255,255,.4)';
+      el.style.color = ph ? rgba(pcolor(ph), .7) : (currentTheme === 'dark' ? 'rgba(255,255,255,.4)' : 'rgba(0,0,0,.4)');
       panel.appendChild(el);
     }
     const fn = PARTS[s.from].name.replace('\n',' ');
@@ -675,7 +711,7 @@ function buildSidebar() {
     const el = document.createElement('div');
     el.className = 'sitem'; el.id = 'si' + i;
     el.onclick = () => jumpTo(i, true);
-    el.innerHTML = '<div class="sdot" style="background:' + s.color + '"></div><div class="sinfo"><div class="sdir">' + dir + '</div><div class="smsg">' + s.msg.replace(/</g,'&lt;') + '</div></div>';
+    el.innerHTML = '<div class="sdot" style="background:' + pcolor(s) + '"></div><div class="sinfo"><div class="sdir" style="color:' + pcolor(s) + '">' + dir + '</div><div class="smsg" style="color:' + rgba(pcolor(s),.65) + '">' + s.msg.replace(/</g,'&lt;') + '</div></div>';
     panel.appendChild(el);
   });
 }
@@ -770,6 +806,7 @@ document.getElementById('bback').onclick = () => {
 document.getElementById('btheme').onclick = () => {
   currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
   document.body.classList.toggle('light', currentTheme === 'light');
+  if (typeof STEPS !== 'undefined' && STEPS && STEPS.length) buildSidebar();
 };
 
 document.getElementById('bsettings').onclick = () =>
@@ -1014,7 +1051,7 @@ document.getElementById('bgif').onclick = async () => {
 
     if (s) {
       const ph = PHASES.find(p => p.id === s.phase);
-      if (ph) { ctx.fillStyle = rgba(ph.color, .028); ctx.fillRect(bounds.x-50,bounds.y-50,bounds.w+100,bounds.h+100); }
+      if (ph) { ctx.fillStyle = rgba(pcolor(ph), .028); ctx.fillRect(bounds.x-50,bounds.y-50,bounds.w+100,bounds.h+100); }
     }
 
     drawWires(L, s, et);
